@@ -2,13 +2,13 @@
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a routerLink="/">Home</a></li>
     <li class="breadcrumb-item"><a routerLink="/categories">Categorias</a></li>
-    <li class="breadcrumb-item"><a routerLink="/">Formulário Categoria</a></li>
+    <li class="breadcrumb-item">{{ pageTitle }}</li>
   </ol>
 </nav>
 
 <div class="row mb-4">
   <div class="col-md">
-    <h1 class="h2 border-left pl-2">Formulário de Categoria {{currentAction}}</h1>
+    <h1 class="h2 border-left pl-2">{{ pageTitle }}</h1>
   </div>
   <div class="col-md">
     <a routerLink="/categories" class="btn btn-light float-right">
@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<form [formGroup]="categoryForm">
+<form [formGroup]="categoryForm" (ngSubmit)="subtmitForm()">
 
   <div class="card">
     <div class="card-header">
@@ -29,18 +29,22 @@
 
         <div class="form-group col-md-4">
           <label for="name">Nome</label>
-          <input type="text" class="form-control" id="name" placeholder="Nome da Categoria">
+          <input type="text" class="form-control" id="name" formControlName="name" placeholder="Nome da Categoria">
+          <div class="text-danger" *ngIf="categoryForm.get('name').invalid && categoryForm.get('name').touched">
+              <div *ngIf="categoryForm.get('name').errors.required">campo obrigatório</div>
+              <div *ngIf="categoryForm.get('name').errors.minlength">deve ter no minimo 2 caracteres</div>
+          </div>
         </div>
 
         <div class="form-group col-md-8">
           <label for="description">Descrição</label>
-          <input type="text" class="form-control" id="description" placeholder="Descrição da Categoria">
+          <input type="text" class="form-control" id="description" formControlName="description"  placeholder="Descrição da Categoria">
         </div>
 
       </div>
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary btn-lg float-right mt-3">Salvar</button>
+  <button [disabled]="submittingForm || categoryForm.invalid" type="submit" class="btn btn-primary btn-lg float-right mt-3">Salvar</button>
 
 </form>

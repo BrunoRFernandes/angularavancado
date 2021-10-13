@@ -6,7 +6,7 @@ import { Category } from '../shared/category.model';
 import { CategoryService } from '../shared/category.service';
 
 import { switchMap } from 'rxjs/operators';
-import { toastr } from 'toastr';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-category-form',
@@ -26,7 +26,8 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
     private categoryService: CategoryService,
     private route: ActivatedRoute,
     private router: Router,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private toastr: ToastrService
   ) { }
 
   ngOnInit() {
@@ -37,6 +38,16 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
 
   ngAfterContentChecked(){
     this.setPageTitle();
+  }
+
+  subtmitForm(){
+    this.submittingForm = true;
+
+    if(this.currentAction == "new"){
+      this.createCategory();
+    }else{
+      this.updateCategory();
+    }
   }
 
   //PRIVATE METHODS:
@@ -51,7 +62,7 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
   private buildCategoryForm(){
     this.categoryForm = this.formBuilder.group({
       id: [null],
-      name: [null, Validators.required, Validators.minLength(2)],
+      name: [null, [Validators.required, Validators.minLength(2)]],
       description: [null]
     });
   }
@@ -64,6 +75,8 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
       .subscribe(
         (category) => {
           this.category = category;
+          console.log(this.category);
+          
           this.categoryForm.patchValue(this.category); // Carrega a categoria para a edição!!!
         },
         (error => alert("Ocorreu um erro no servidor, tente novamente mais tarde"))
@@ -77,6 +90,43 @@ export class CategoryFormComponent implements OnInit, AfterContentChecked {
     }else{
       const categoryName = this.category.name || "";
       this.pageTitle = "Editando Categoria: " + categoryName;
+    }
+  }
+
+  private createCategory(){
+    const category: Category = Object.assign(new Category(), this.categoryForm.value);  
+
+    this.categoryService.create(category)
+    .subscribe(
+      category => this.actionsFormSuccess(category),
+      error => this.actionsFormError(error)
+    );
+  }
+
+  private updateCategory(){
+    const category: Category = Object.assign(new Category(), this.categoryForm.value);  
+
+    this.categoryService.update(category)
+    .subscribe(
+      category => this.actionsFormSuccess(category),
+      error => this.actionsFormError(error)
+    );
+  }
+
+  private actionsFormSuccess(category: Category){
+    this.toastr.success("Solicitação processada com sucesso!");
+    this.router.navigate(["categories"]);
+  }
+
+  private actionsFormError(error){
+    this.toastr.error("Ocorreu um erro ao processar a sua solicitação");
+
+    this.submittingForm = false;
+
+    if(error.status === 422){
+      this.serverErroMessages = JSON.parse(error._body).errors;
+    }else{
+      this.serverErroMessages = ["Falha na comunicação com o servidor. Por favor tente mais tarde."]
     }
   }
 

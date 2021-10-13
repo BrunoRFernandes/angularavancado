@@ -24,7 +24,7 @@ export class CategoryService {
   getById(id: number): Observable<Category>{
     const url = `${this.apiPath}/${id}`;
     
-    return this.http.get(this.apiPath).pipe(
+    return this.http.get(url).pipe(
       catchError(this.handleError),
       map(this.jsonDataToCategory)    
     );
